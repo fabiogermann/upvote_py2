@@ -466,6 +466,15 @@ bind(
     actual = "@requests_toolbelt_archive//:requests_toolbelt",
 )
 
+#http_archive(
+#    name = "io_bazel_rules_closure",
+#    sha256 = "cb3b211eb61838e34f7ef5c85360d44f4bc10bae540ecb9c4b534d5cf7249d05",
+#    strip_prefix = "rules_closure-1b1061b31e8a470b0ce314298bd7dcf9f088a11e",
+#    urls = [
+#        "https://github.com/bazelbuild/rules_closure/archive/1b1061b31e8a470b0ce314298bd7dcf9f088a11e.tar.gz",  # 2019-1-30
+#    ],
+#)
+
 http_archive(
     name = "io_bazel_rules_closure",
     sha256 = "bc7b6edd8684953b851300ef7fa122f4e6e9ed52f509a13724e49ffddb9a14eb",

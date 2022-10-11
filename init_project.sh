@@ -1,4 +1,8 @@
 #!/bin/bash
+
+export PROJ_ID=santa-upvote-p2
+
+
 if [[ -z "${PROJ_ID}" ]]; then
   echo "Error: \$PROJ_ID environment variable is undefined"
   echo "  To locate your project ID, see https://support.google.com/cloud/answer/6158840?hl=en"
@@ -22,29 +26,33 @@ set -xe
 
 gcloud config set project "${PROJ_ID}"
 
-echo Enabling App Engine...
-if [[ "$(gcloud app describe --format='value(id)' 2> /dev/null)" != "${PROJ_ID}" ]]; then
-  gcloud app create
-fi
+#echo Enabling App Engine...
+#if [[ "$(gcloud app describe --format='value(id)' 2> /dev/null)" != "${PROJ_ID}" ]]; then
+#  gcloud app create
+#fi
 
-echo Enabling APIs used by Upvote...
-gcloud services enable cloudkms.googleapis.com
-gcloud services enable bigquery-json.googleapis.com
+#echo Enabling APIs used by Upvote...
+#gcloud services enable cloudkms.googleapis.com
+#gcloud services enable bigquery-json.googleapis.com
 
-echo Creating encryption keys used to store Upvote API secrets...
-gcloud kms keyrings create ring --location=global
-gcloud kms keys create virustotal --purpose=encryption --keyring=ring --location=global
+#echo Creating encryption keys used to store Upvote API secrets...
+#gcloud kms keyrings create ring --location=global
+#gcloud kms keys create virustotal --purpose=encryption --keyring=ring --location=global
 
-echo Granting necessary permissions to App Engine...
-SERVICE_ACCOUNT=$(gcloud iam service-accounts list --filter="App Engine app default service account" --format="value(email)")
-gcloud projects add-iam-policy-binding "${PROJ_ID}" --member serviceAccount:"${SERVICE_ACCOUNT}" --role roles/cloudkms.cryptoKeyEncrypterDecrypter
+#echo Granting necessary permissions to App Engine...
+#SERVICE_ACCOUNT=$(gcloud iam service-accounts list --filter="App Engine app default service account" --format="value(email)")
+#gcloud projects add-iam-policy-binding "${PROJ_ID}" --member serviceAccount:"${SERVICE_ACCOUNT}" --role roles/cloudkms.cryptoKeyEncrypterDecrypter
 
-echo Configuring App Engine...
-./manage_crons.py disable_all
+#echo Configuring App Engine...
+#./manage_crons.py disable_all
 
 echo Deploying temporary default version to App Engine...
 # NOTE: This is expected to fail but continue processing.
-bazel run upvote/gae:monolith_binary.deploy -- "${PROJ_ID}" app.yaml 2> /dev/null || echo
+bazel run upvote/gae:monolith_binary.deploy --host_force_python=PY2 --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_depset_union=false -- "${PROJ_ID}" app.yaml 2> /dev/null || echo
 
 echo Deploying to App Engine...
-bazel run upvote/gae:monolith_binary.deploy -- "${PROJ_ID}" app.yaml
+bazel run upvote/gae:monolith_binary.deploy --host_force_python=PY2 --incompatible_disable_deprecated_attr_params=false --incompatible_depset_is_not_iterable=false --incompatible_depset_union=false -- "${PROJ_ID}" app.yaml
+
+echo "if only deployment failed, manually deploy using: "
+echo "> cd /app/upvote_py2/bazel-bin/upvote/gae/monolith_binary.deploy.runfiles/__main__"
+echo "> gcloud app deploy"
